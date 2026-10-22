@@ -6,6 +6,7 @@ import {
   resolveLanguageModelID,
   type ModelConfig
 } from '@/app/ai/models/language-model'
+import type { ModelCredentialStore } from '@/app/ai/providers/types'
 import { isTauri } from '@/app/tauri/env'
 
 export type ProviderConnectionTestResult =
@@ -93,15 +94,20 @@ function classifyError(error: unknown): ProviderConnectionTestFailureReason {
   return classifyStatus(providerErrorStatus(error), text) ?? classifyMessage(text) ?? 'unknown'
 }
 
+/**
+ * Sends a one-token request. A test of a saved credential passes its store, so a sign-in the
+ * request refreshes keeps the new tokens instead of leaving a spent refresh token saved.
+ */
 export async function testProviderConnection(
-  config: ModelConfig
+  config: ModelConfig,
+  credentials?: ModelCredentialStore
 ): Promise<ProviderConnectionTestResult> {
   const invalidReason = validateConfig(config)
   if (invalidReason) return { ok: false, reason: invalidReason }
 
   try {
     await generateText({
-      model: createLanguageModel(config),
+      model: createLanguageModel(config, credentials),
       prompt: 'Reply with OK.',
       maxOutputTokens: 1,
       abortSignal: AbortSignal.timeout(15_000)

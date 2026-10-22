@@ -6,6 +6,7 @@ mod fonts;
 mod http;
 mod menu;
 mod menu_events;
+mod oauth_loopback;
 mod opener;
 #[cfg(target_os = "macos")]
 mod window;
@@ -412,6 +413,7 @@ pub fn run() {
     builder
         .manage(PendingOpen(Mutex::new(Vec::new())))
         .manage(ProxyHttpRequests::default())
+        .manage(oauth_loopback::ChatGPTOAuthLoopback::default())
         .manage(PendingRooms(Mutex::new(Vec::new())))
         .manage(NativeMenuState(Mutex::new(NativeMenuInputs::default())))
         .manage(PendingCloudLinks(Mutex::new(Vec::new())))
@@ -419,6 +421,9 @@ pub fn run() {
             agents::agent_lookup,
             agents::agent_workspace,
             build_fig_file,
+            oauth_loopback::chatgpt_oauth_listen,
+            oauth_loopback::chatgpt_oauth_wait,
+            oauth_loopback::chatgpt_oauth_cancel,
             credential_read,
             credential_access_paused,
             credential_retry_access,

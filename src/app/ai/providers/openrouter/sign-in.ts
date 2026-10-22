@@ -6,13 +6,12 @@ import { createDeferred } from '@/app/runtime/deferred'
 import { openExternalLink } from '@/app/shell/ui'
 import { WEB_APP_ORIGIN } from '@/constants'
 
+import { createPKCE, type PKCE } from '../pkce'
 import {
-  createOpenRouterPKCE,
   exchangeOpenRouterCode,
   openRouterAuthorizationURL,
   OPENROUTER_CODE_LIFETIME_MS,
-  parseOpenRouterCallback,
-  type OpenRouterPKCE
+  parseOpenRouterCallback
 } from './oauth'
 
 /** Served from `public/`; it relays the redirect to the editor over this channel. */
@@ -66,7 +65,7 @@ async function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T
 
 async function finish(
   query: string | null,
-  pkce: OpenRouterPKCE,
+  pkce: PKCE,
   signal: AbortSignal
 ): Promise<OpenRouterSignInResult> {
   if (query === null) return { ok: false, reason: 'expired' }
@@ -114,7 +113,7 @@ function browserSignIn({ signal, keyLabel }: OpenRouterSignInOptions): OpenRoute
   }
   const result = settle(async () => {
     if (!popup) return { ok: false, reason: 'blocked' }
-    const pkce = await createOpenRouterPKCE()
+    const pkce = await createPKCE()
     const callbackURL = new URL(OPENROUTER_CALLBACK_PATH, window.location.origin).href
     authorizationURL = openRouterAuthorizationURL(callbackURL, pkce, keyLabel)
     popup.location.href = authorizationURL
@@ -157,7 +156,7 @@ function desktopSignIn({ signal, keyLabel }: OpenRouterSignInOptions): OpenRoute
     if (authorizationURL) void openExternalLink(authorizationURL)
   }
   const result = settle(async () => {
-    const [pkce, callback] = await Promise.all([createOpenRouterPKCE(), listenForDesktopCallback()])
+    const [pkce, callback] = await Promise.all([createPKCE(), listenForDesktopCallback()])
     try {
       const callbackURL = new URL(OPENROUTER_DESKTOP_CALLBACK_PATH, WEB_APP_ORIGIN).href
       authorizationURL = openRouterAuthorizationURL(callbackURL, pkce, keyLabel)

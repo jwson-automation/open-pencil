@@ -4,7 +4,7 @@ import { REASONING_EFFORTS } from '@open-pencil/core/constants'
 import type { ModelOption } from '@open-pencil/core/constants'
 
 /** A model list as the app caches it after normalizing a provider's own catalog. */
-export const ModelOptionsSchema = v.array(
+export const modelOptionsSchema = v.array(
   v.object({
     id: v.string(),
     name: v.string(),

@@ -4,7 +4,7 @@ import * as v from 'valibot'
 import { REASONING_EFFORTS } from '@open-pencil/core/constants'
 import type { ModelOption, ReasoningEffort } from '@open-pencil/core/constants'
 
-import { ModelOptionsSchema } from '@/app/ai/models/catalog/schema'
+import { modelOptionsSchema } from '@/app/ai/models/catalog/schema'
 import { readCacheJSON, writeCacheJSON } from '@/app/cache'
 import { cachedRemoteJSON } from '@/app/cache/remote'
 import type { FetchFunction } from '@/app/http/types'
@@ -49,7 +49,7 @@ const chatGPTModelSchema = v.looseObject({
 type ChatGPTModel = v.InferOutput<typeof chatGPTModelSchema>
 
 // Entries are checked one by one, so one odd model keeps the rest.
-const ChatGPTModelsJSON = v.pipe(
+const chatGPTModelsResponseSchema = v.pipe(
   v.string(),
   v.parseJson(),
   v.object({ models: v.array(v.unknown()) })
@@ -80,7 +80,7 @@ export function normalizeChatGPTModels(entries: unknown[]): ModelOption[] {
 
 /** The last catalog fetched for any signed-in account, without asking the backend. */
 export function cachedChatGPTModels(): Promise<ModelOption[] | null> {
-  return readCacheJSON(CHATGPT_MODELS_CACHE_KEY, ModelOptionsSchema).catch(() => null)
+  return readCacheJSON(CHATGPT_MODELS_CACHE_KEY, modelOptionsSchema).catch(() => null)
 }
 
 /** Fetches the account's models with a fetch signed by its sign-in, then caches the list. */
@@ -89,7 +89,7 @@ export async function fetchChatGPTModels(
 ): Promise<ModelOption[] | null> {
   const cached = await readCacheJSON(
     CHATGPT_MODELS_CACHE_KEY,
-    ModelOptionsSchema,
+    modelOptionsSchema,
     CACHE_TTL_MS
   ).catch(() => null)
   if (cached) return cached
@@ -99,7 +99,7 @@ export async function fetchChatGPTModels(
   url.searchParams.set('client_version', version)
   const response = await signedFetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) })
   if (!response.ok) return null
-  const parsed = v.safeParse(ChatGPTModelsJSON, await response.text())
+  const parsed = v.safeParse(chatGPTModelsResponseSchema, await response.text())
   const models = parsed.success ? normalizeChatGPTModels(parsed.output.models) : []
   if (!models.length) return null
   await writeCacheJSON(CHATGPT_MODELS_CACHE_KEY, models).catch(() => undefined)

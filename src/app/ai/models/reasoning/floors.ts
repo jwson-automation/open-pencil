@@ -3,11 +3,11 @@ import * as v from 'valibot'
 import { AI_PROVIDERS, REASONING_EFFORTS } from '@open-pencil/core/constants'
 import type { AIProviderID, ModelOption, ReasoningEffort } from '@open-pencil/core/constants'
 
-import { ModelOptionsSchema } from '@/app/ai/models/catalog/schema'
+import { modelOptionsSchema } from '@/app/ai/models/catalog/schema'
 import { cachedChatGPTModels } from '@/app/ai/providers/chatgpt/catalog'
 import { cachedRemoteJSON } from '@/app/cache/remote'
 
-const OpenRouterModelSchema = v.looseObject({
+const openRouterModelSchema = v.looseObject({
   id: v.optional(v.unknown()),
   name: v.optional(v.unknown()),
   supported_parameters: v.optional(v.unknown()),
@@ -21,10 +21,10 @@ const OpenRouterModelSchema = v.looseObject({
   )
 })
 
-type OpenRouterModel = v.InferOutput<typeof OpenRouterModelSchema>
+type OpenRouterModel = v.InferOutput<typeof openRouterModelSchema>
 
 // Entries are checked one by one in `fetchOpenRouterModels`, so one odd model keeps the rest.
-const OpenRouterModelsResponseJSON = v.pipe(
+const openRouterModelsResponseSchema = v.pipe(
   v.string(),
   v.parseJson(),
   v.object({ data: v.optional(v.array(v.unknown())) })
@@ -84,16 +84,16 @@ async function fetchOpenRouterModels(fetcher: typeof fetch): Promise<ModelOption
     signal: AbortSignal.timeout(OPENROUTER_MODELS_TIMEOUT_MS)
   })
   if (!response.ok) throw new Error(`OpenRouter models request failed: ${response.status}`)
-  const json = v.parse(OpenRouterModelsResponseJSON, await response.text())
+  const json = v.parse(openRouterModelsResponseSchema, await response.text())
   return (json.data ?? []).flatMap((entry) => {
-    const model = v.is(OpenRouterModelSchema, entry) ? normalizeOpenRouterModel(entry) : null
+    const model = v.is(openRouterModelSchema, entry) ? normalizeOpenRouterModel(entry) : null
     return model ? [model] : []
   })
 }
 
 const openRouterModels = cachedRemoteJSON<ModelOption[]>({
   key: OPENROUTER_MODELS_CACHE_KEY,
-  schema: ModelOptionsSchema,
+  schema: modelOptionsSchema,
   maxAgeMs: OPENROUTER_MODELS_CACHE_TTL_MS,
   load: async (fetcher) => {
     const models = await fetchOpenRouterModels(fetcher)

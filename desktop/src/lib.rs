@@ -3,10 +3,9 @@ mod credentials;
 mod deep_link;
 mod fig_container;
 mod fonts;
-mod http;
 mod menu;
 mod menu_events;
-mod oauth_loopback;
+mod network;
 mod opener;
 #[cfg(target_os = "macos")]
 mod window;
@@ -18,7 +17,7 @@ use credentials::{
 use deep_link::path_matches_suffix;
 use fig_container::build_fig_file;
 use fonts::{list_system_fonts, load_system_font};
-use http::{cancel_http_request, proxy_http_request, ProxyHttpRequests};
+use network::http::{cancel_http_request, proxy_http_request, ProxyHttpRequests};
 use menu::{
     install_app_menu, native_menu_checked, set_native_menu_checked, set_native_menu_features,
     update_app_menu, NativeMenuInputs, NativeMenuState,
@@ -413,7 +412,7 @@ pub fn run() {
     builder
         .manage(PendingOpen(Mutex::new(Vec::new())))
         .manage(ProxyHttpRequests::default())
-        .manage(oauth_loopback::ChatGPTOAuthLoopback::default())
+        .manage(network::oauth::ChatGPTOAuthLoopback::default())
         .manage(PendingRooms(Mutex::new(Vec::new())))
         .manage(NativeMenuState(Mutex::new(NativeMenuInputs::default())))
         .manage(PendingCloudLinks(Mutex::new(Vec::new())))
@@ -421,9 +420,9 @@ pub fn run() {
             agents::agent_lookup,
             agents::agent_workspace,
             build_fig_file,
-            oauth_loopback::chatgpt_oauth_listen,
-            oauth_loopback::chatgpt_oauth_wait,
-            oauth_loopback::chatgpt_oauth_cancel,
+            network::oauth::chatgpt_oauth_listen,
+            network::oauth::chatgpt_oauth_wait,
+            network::oauth::chatgpt_oauth_cancel,
             credential_read,
             credential_access_paused,
             credential_retry_access,

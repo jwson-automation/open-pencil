@@ -297,10 +297,19 @@ export function planOnboarding(answers: OnboardingAnswers, options: PlanOptions)
     review: planReview(design, vision, current),
     fast: planFast(design, vision, current)
   }
-  // A selected agent is always shown, as only its card tells whether it is installed and signed
-  // in, and the person can make it the design model in review.
-  const agents = access.filter(isOnboardingAgent)
-  return { ...roles, connections: uniq([...planConnections(roles), ...agents]) }
+  // Everything selected is connected, after what the planned models need: the person said they
+  // have it, its card is where they sign in or enter a key, and once connected its models can
+  // take any role in review. An account a configured model already uses is not asked for again;
+  // an agent is still shown, as only its card tells whether it is installed and signed in.
+  const configured = new Set(
+    roleModels(current)
+      .filter((model) => model.profileId)
+      .map((model) => model.providerID)
+  )
+  const selected = access.filter(
+    (providerID) => isOnboardingAgent(providerID) || !configured.has(providerID)
+  )
+  return { ...roles, connections: uniq([...planConnections(roles), ...selected]) }
 }
 
 /** Providers the planned models need connected, skipping models that are already configured. */

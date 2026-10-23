@@ -1,4 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai'
+import { defaultSettingsMiddleware, wrapLanguageModel } from 'ai'
 
 import { randomHex } from '@open-pencil/scene-graph/random'
 
@@ -39,6 +40,17 @@ export const chatGPTAdapter: ModelProviderAdapter = {
       baseURL: CHATGPT_CODEX_BASE_URL,
       fetch: chatGPTFetch(credential, runtime.credentials, runtime.fetch, randomHex(16))
     })
-    return provider.responses(config.modelID)
+    // The backend keeps nothing, so earlier replies must be sent whole: with `store` off the AI
+    // SDK sends their items and encrypted reasoning instead of references to stored ones.
+    return wrapLanguageModel({
+      model: provider.responses(config.modelID),
+      middleware: defaultSettingsMiddleware({
+        settings: {
+          providerOptions: {
+            openai: { store: false, include: ['reasoning.encrypted_content'] }
+          }
+        }
+      })
+    })
   }
 }

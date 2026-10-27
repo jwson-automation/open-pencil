@@ -4,6 +4,20 @@ import { percentLength, pixelLength } from '../text/lengths'
 import type { TextLength } from '../types'
 import { parseCSSNumber } from './values'
 
+/**
+ * The first family of a CSS `font-family` list, without its quotes; an unquoted name's words join
+ * with single spaces. Null for an empty list.
+ */
+export function parseCSSFontFamily(value: string | undefined): string | null {
+  if (!value) return null
+  const words: string[] = []
+  for (const node of valueParser(value).nodes) {
+    if (node.type === 'div' && node.value === ',') break
+    if (node.type === 'string' || node.type === 'word') words.push(node.value)
+  }
+  return words.join(' ') || null
+}
+
 /** A CSS dimension's number and lowercase unit, or null. */
 function dimension(value: string): { number: number; unit: string } | null {
   const parsed = valueParser.unit(value)

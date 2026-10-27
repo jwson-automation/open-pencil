@@ -2,9 +2,9 @@ import type { CSSFontFaceRule } from '@acemir/cssom'
 import { isValid, toUint8Array } from 'js-base64'
 import { parseFragment, serialize, type DefaultTreeAdapterTypes } from 'parse5'
 
+import { parseCSSFontFamily } from '@open-pencil/scene-graph/css'
 import { normalizeFontFamily } from '@open-pencil/scene-graph/font-style'
 
-import { firstFontFamily } from '../import/css-values'
 import { tokenStylesheet, type TokenStylesheetFormat } from '../tokens/stylesheet'
 import type { DesignDocument, DesignElement, DesignNode, DesignStyleDeclaration } from '../types'
 import { mergeClassNames, serializeHTML, splitWhitespace } from './html'
@@ -223,7 +223,7 @@ function collectFontRequests(node: DesignNode, fonts: Map<string, WebFontFaceReq
   if (node.type === 'text') return
   const source = node.sourceSceneNode
   if (source?.type === 'TEXT') {
-    const family = normalizeFontFamily(firstFontFamily(source.fontFamily))
+    const family = normalizeFontFamily(parseCSSFontFamily(source.fontFamily) ?? source.fontFamily)
     const style = source.italic ? 'italic' : 'normal'
     const key = `${family}|${source.fontWeight}|${style}`
     fonts.set(key, { family, weight: source.fontWeight, style })

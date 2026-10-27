@@ -1,7 +1,25 @@
 import { describe, expect, test } from 'bun:test'
 
-import { parseCSSLetterSpacing, parseCSSLineHeight } from '@open-pencil/scene-graph/css'
+import {
+  parseCSSFontFamily,
+  parseCSSLetterSpacing,
+  parseCSSLineHeight
+} from '@open-pencil/scene-graph/css'
 import { percentLength, pixelLength } from '@open-pencil/scene-graph/text'
+
+describe('parseCSSFontFamily', () => {
+  test.each([
+    ["'Noto Sans KR', sans-serif", 'Noto Sans KR'],
+    ['"Fira Code", monospace', 'Fira Code'],
+    ['"Foo, Bar", serif', 'Foo, Bar'],
+    ['"O\'Reilly"', "O'Reilly"],
+    ['Noto   Sans KR, Arial', 'Noto Sans KR'],
+    ['Inter', 'Inter'],
+    ['', null]
+  ])('%s', (value, expected) => {
+    expect(parseCSSFontFamily(value)).toBe(expected)
+  })
+})
 
 describe('parseCSSLineHeight', () => {
   test.each([

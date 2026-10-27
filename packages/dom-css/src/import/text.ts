@@ -10,13 +10,14 @@ import type {
 } from '@open-pencil/scene-graph'
 import {
   parseCSSColor,
+  parseCSSFontFamily,
   parseCSSLetterSpacing,
   parseCSSLineHeight,
   parseCSSNumber
 } from '@open-pencil/scene-graph/css'
 
 import type { DesignElement, DesignNode, DesignStyleDeclaration } from '../types'
-import { colorToFillFromCSS, firstFontFamily, mergedStyle, pickStyle } from './css-values'
+import { colorToFillFromCSS, mergedStyle, pickStyle } from './css-values'
 
 /** The character styles a text layer and its runs take from CSS. */
 export type CSSCharacterStyle = Pick<
@@ -110,8 +111,7 @@ export function characterStyleFromCSS(
   base: CSSCharacterStyle
 ): CSSCharacterStyle {
   const fills = colorToFillFromCSS(pickStyle(style, 'color'))
-  const fontFamily = pickStyle(style, 'font-family')
-  const family = fontFamily ? firstFontFamily(fontFamily) : undefined
+  const family = parseCSSFontFamily(pickStyle(style, 'font-family'))
   const decorationColor = pickStyle(style, 'text-decoration-color')
   const decorationFills = parseCSSColor(decorationColor) ? colorToFillFromCSS(decorationColor) : []
   const line = pickStyle(style, 'text-decoration-line')

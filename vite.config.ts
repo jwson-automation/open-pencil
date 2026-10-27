@@ -19,6 +19,7 @@ import {
   localAutomationToken,
   openPencilAutomationPlugin
 } from './vite/automation'
+import { bootSplashPlugin } from './vite/boot-splash'
 import { cloudSitePlugin } from './vite/cloud-site'
 import { aiIconCollection } from './vite/icons'
 import { metricsBrandPlugin } from './vite/metrics'
@@ -36,8 +37,9 @@ export default defineConfig(async ({ command, mode }) => {
   // `--mode metrics` builds only the metrics dashboard (`metrics.html`) for the feedback Worker,
   // which serves it under /admin behind Cloudflare Access.
   const metrics = mode === 'metrics'
+  const env = loadEnv(mode, __dirname, 'VITE_')
   // `VITE_OPENPENCIL_CLOUD=off` builds the editor without OpenPencil Cloud.
-  const cloud = loadEnv(mode, __dirname, 'VITE_').VITE_OPENPENCIL_CLOUD !== 'off'
+  const cloud = env.VITE_OPENPENCIL_CLOUD !== 'off'
   await Promise.all([ensureBrandAssets(['web']), metrics ? undefined : ensureDemoDocument()])
   return {
     resolve: {
@@ -46,6 +48,9 @@ export default defineConfig(async ({ command, mode }) => {
     define: {
       __OPENPENCIL_APP_VERSION__: JSON.stringify(packageJson.version),
       __OPENPENCIL_CLOUD_SITE__: JSON.stringify(cloudSite),
+      __OPENPENCIL_OFFICIAL_CLOUD_URL__: JSON.stringify(
+        env.VITE_OPENPENCIL_OFFICIAL_CLOUD_URL ?? null
+      ),
       __OPENPENCIL_LOCAL_AUTOMATION_TOKEN__: JSON.stringify(localAutomationToken(command)),
       __OPENPENCIL_LOCAL_AUTOMATION_URL__: JSON.stringify(automationRoute.browserURL),
       __OPENPENCIL_LOCAL_AUTOMATION_HTTP_URL__: JSON.stringify(
@@ -56,6 +61,10 @@ export default defineConfig(async ({ command, mode }) => {
     optimizeDeps: { include: ['ai/test'] },
     plugins: [
       rawMarkdownPlugin(),
+      bootSplashPlugin({
+        entry: resolve(__dirname, 'src/splash/theme.ts'),
+        pages: ['index.html', 'cloud.html', 'metrics.html']
+      }),
       tailwindcss(),
       Icons({ compiler: 'vue3', customCollections: { ai: aiIconCollection() } }),
       Components({ resolvers: [IconsResolver({ prefix: 'icon', customCollections: ['ai'] })] }),

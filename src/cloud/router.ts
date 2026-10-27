@@ -63,7 +63,7 @@ export function createCloudPortalRouter(context: PortalContext) {
         meta: { account: true }
       },
       {
-        path: '/cloud/device',
+        path: '/auth/device',
         name: 'device',
         component: () => import('@/views/cloud/DeviceView.vue'),
         meta: { account: true }
@@ -82,7 +82,19 @@ export function createCloudPortalRouter(context: PortalContext) {
       },
       {
         path: '/account',
+        name: 'profile',
+        component: () => import('@/views/cloud/ConsoleView.vue'),
+        meta: { account: true }
+      },
+      {
+        path: '/account/security',
         name: 'security',
+        component: () => import('@/views/cloud/ConsoleView.vue'),
+        meta: { account: true }
+      },
+      {
+        path: '/account/sessions',
+        name: 'sessions',
         component: () => import('@/views/cloud/ConsoleView.vue'),
         meta: { account: true }
       },
@@ -92,15 +104,25 @@ export function createCloudPortalRouter(context: PortalContext) {
         component: () => import('@/views/cloud/ConsoleView.vue'),
         meta: { account: true, admin: true }
       },
-      // A stale or mistyped portal address, which the server still answers with this page.
-      { path: '/:pathMatch(.*)*', redirect: PORTAL_HOME }
+      {
+        path: '/admin/people/:userId',
+        name: 'person',
+        component: () => import('@/views/cloud/ConsoleView.vue'),
+        meta: { account: true, admin: true }
+      }
     ]
   })
 
+  // Guards rather than a catch-all route: a redirect record runs before them, and the editor's
+  // own address, which they send on, would match it again.
   router.beforeEach((to) => {
-    if (isCloudPortalPage(to.path)) return portalDestination(to, context.account.value)
-    globalThis.location.assign(to.fullPath)
-    return false
+    if (!isCloudPortalPage(to.path)) {
+      globalThis.location.assign(to.fullPath)
+      return false
+    }
+    // A stale or mistyped portal address, which the server still answers with this page.
+    if (to.matched.length === 0) return PORTAL_HOME
+    return portalDestination(to, context.account.value)
   })
 
   return router

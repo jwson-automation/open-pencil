@@ -66,7 +66,7 @@ import type { Color } from '@open-pencil/scene-graph/primitives'
  * builds that sync the layer tree or variables differently, or encode what they send
  * differently, never join each other's rooms; change it with either.
  */
-export const COLLAB_APP_ID = 'openpencil/6'
+export const COLLAB_APP_ID = 'openpencil/7'
 
 // 32 base36 characters provide roughly 165 bits of entropy. The room ID is a
 // bearer credential and must resist offline enumeration from public signaling topics.
@@ -87,7 +87,8 @@ export const CLOUD_WAITLIST_URL = 'https://openpencil.dev/#cloud'
  * editor build names that deployment, such as staging.
  */
 export const OFFICIAL_CLOUD_URL =
-  import.meta.env.VITE_OPENPENCIL_OFFICIAL_CLOUD_URL || 'https://cloud.openpencil.dev'
+  (typeof __OPENPENCIL_OFFICIAL_CLOUD_URL__ === 'string' && __OPENPENCIL_OFFICIAL_CLOUD_URL__) ||
+  'https://cloud.openpencil.dev'
 /** Whether this is the editor a Cloud server serves on its own address (`bun run build:cloud`). */
 export const IS_CLOUD_SITE =
   typeof __OPENPENCIL_CLOUD_SITE__ === 'boolean' && __OPENPENCIL_CLOUD_SITE__
@@ -115,7 +116,7 @@ export function releaseNotesURL(version: string): string {
 
 export function getShareURL(roomId: string): string {
   const base = IS_TAURI || !IS_BROWSER ? WEB_APP_ORIGIN : window.location.origin
-  return `${base}/share/${roomId}`
+  return `${base}/rooms/${roomId}`
 }
 
 export const PEER_COLORS: Color[] = [

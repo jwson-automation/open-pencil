@@ -14,6 +14,10 @@ describe('parseCSSFontFamily', () => {
     ['"Foo, Bar", serif', 'Foo, Bar'],
     ['"O\'Reilly"', "O'Reilly"],
     ['Noto   Sans KR, Arial', 'Noto Sans KR'],
+    ["O'Reilly, Arial", "O'Reilly"],
+    ["'O\\'Reilly', serif", "O'Reilly"],
+    ['"A\\26 B"', 'A&B'],
+    ['Foo\\,Bar, serif', 'Foo,Bar'],
     ['Inter', 'Inter'],
     ['', null]
   ])('%s', (value, expected) => {
